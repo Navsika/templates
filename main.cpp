@@ -20,7 +20,7 @@ int main() {
             std::cout << "id: " << id << ", name: " << name << ", decription: " << description << std::endl;
         }
     } catch (const std::exception &e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << e.what() << std::endl;
     }
 
     return 0;

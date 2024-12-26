@@ -41,6 +41,7 @@ class CSVIterator {
     char rowDelimiter;
     char colDelimiter;
     char escapeChar;
+    int lineNumber;
 
     class Parsing {
     public:
@@ -59,7 +60,7 @@ class CSVIterator {
                 std::istringstream tokenStream(token);
                 tokenStream >> value;
                 if (tokenStream.fail()) {
-                    throw std::runtime_error("conversion failed in line: " + token);
+                    throw std::runtime_error("conversion failed");
 
                 }
             }
@@ -120,22 +121,23 @@ class CSVIterator {
     };
 
 public:
-    CSVIterator() : stream(nullptr), end(true), rowDelimiter('\n'), colDelimiter(','), escapeChar('"'){}
+    CSVIterator() : stream(nullptr), end(true), rowDelimiter('\n'), colDelimiter(','), escapeChar('"'), lineNumber(0){}
 
     explicit CSVIterator(std::istream &in, char rowDelim, char colDelim, char escChar)
-            : stream(&in), end(false), rowDelimiter(rowDelim), colDelimiter(colDelim), escapeChar(escChar) {
+            : stream(&in), end(false), rowDelimiter(rowDelim), colDelimiter(colDelim), escapeChar(escChar), lineNumber(0){
         ++(*this);
     }
 
     CSVIterator &operator++() {
         if (std::getline(*stream, currentLine, rowDelimiter)) {
+            ++lineNumber;
             if (currentLine.empty())
                 return *this;
             try {
                 currentTuple = Parsing::template parseLine<Args...>(currentLine, colDelimiter, escapeChar);
             } catch (const std::exception &err) {
                 end = true;
-                throw std::runtime_error(std::string(err.what()) + " in line: " + currentLine);
+                throw std::runtime_error(std::string(err.what()) + " in line: " + std::to_string(lineNumber));
             }
         } else {
             end = true;
